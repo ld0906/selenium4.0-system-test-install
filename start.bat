@@ -13,7 +13,7 @@ if errorlevel 1 (
 )
 
 echo [1/4] 检查虚拟环境...
-if not exist "venv" (
+if not exist ".venv" (
     echo 创建虚拟环境...
     python -m venv .venv
 )

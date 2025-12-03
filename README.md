@@ -3,7 +3,7 @@
 
 ### 步骤1: 进入项目目录
 ```bash
-cd c:\Users\jingjasl\Documents\dntest-python
+cd c:\Users\xxx\Documents\dntest-python
 ```
 
 ### 步骤2: 运行启动脚本
@@ -86,7 +86,7 @@ chmod +x start.sh
 
 ```bash
 # 1. 创建虚拟环境
-python -m venv venv
+python -m venv .venv
 
 # 2. 激活虚拟环境
 # Windows:
