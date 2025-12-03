@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>服务监控</title>
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet"/>
+    <link href="{{ url_for('static', filename='css/font-awesome.min.css') }}" rel="stylesheet"/>
+    <style>
+        body { padding: 20px; background: white; }
+        .info-box { background: #f3f3f4; padding: 20px; margin-bottom: 20px; border-radius: 4px; }
+        .info-box h4 { margin-top: 0; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+        .info-item { margin: 10px 0; }
+        .info-item label { display: inline-block; width: 150px; font-weight: bold; }
+        .progress { height: 20px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <h3><i class="fa fa-server"></i> 服务监控</h3>
+        
+        <div class="info-box">
+            <h4>CPU信息</h4>
+            <div class="info-item">
+                <label>CPU使用率：</label>
+                <span id="cpuUsage">加载中...</span>
+                <div class="progress">
+                    <div id="cpuProgress" class="progress-bar progress-bar-success" role="progressbar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h4>内存信息</h4>
+            <div class="info-item">
+                <label>总内存：</label>
+                <span id="memTotal">加载中...</span>
+            </div>
+            <div class="info-item">
+                <label>已用内存：</label>
+                <span id="memUsed">加载中...</span>
+            </div>
+            <div class="info-item">
+                <label>可用内存：</label>
+                <span id="memAvailable">加载中...</span>
+            </div>
+            <div class="info-item">
+                <label>使用率：</label>
+                <span id="memUsage">加载中...</span>
+                <div class="progress">
+                    <div id="memProgress" class="progress-bar progress-bar-info" role="progressbar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h4>磁盘信息</h4>
+            <div id="diskInfo">加载中...</div>
+        </div>
+
+        <div class="info-box">
+            <h4>系统信息</h4>
+            <div class="info-item">
+                <label>操作系统：</label>
+                <span id="osName">加载中...</span>
+            </div>
+            <div class="info-item">
+                <label>系统架构：</label>
+                <span id="osArch">加载中...</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script>
+        $(function() { 
+            loadData();
+            setInterval(loadData, 5000); // 每5秒刷新
+        });
+
+        function loadData() {
+            $.ajax({
+                url: '{{ url_for("monitor.server_info") }}',
+                type: 'GET',
+                success: function(res) {
+                    if (res.code == 0) {
+                        updateDisplay(res.data);
+                    }
+                },
+                error: function() {
+                    $('#cpuUsage').text('暂无数据');
+                }
+            });
+        }
+
+        function updateDisplay(data) {
+            // CPU信息
+            if (data.cpu) {
+                var cpuPercent = data.cpu.percent || 0;
+                $('#cpuUsage').text(cpuPercent.toFixed(2) + '%');
+                $('#cpuProgress').css('width', cpuPercent + '%');
+                updateProgressColor($('#cpuProgress'), cpuPercent);
+            }
+
+            // 内存信息
+            if (data.memory) {
+                $('#memTotal').text(formatBytes(data.memory.total));
+                $('#memUsed').text(formatBytes(data.memory.used));
+                $('#memAvailable').text(formatBytes(data.memory.available));
+                var memPercent = data.memory.percent || 0;
+                $('#memUsage').text(memPercent.toFixed(2) + '%');
+                $('#memProgress').css('width', memPercent + '%');
+                updateProgressColor($('#memProgress'), memPercent);
+            }
+
+            // 磁盘信息
+            if (data.disk) {
+                var diskHtml = '';
+                data.disk.forEach(function(d) {
+                    diskHtml += '<div class="info-item">';
+                    diskHtml += '<label>' + d.device + '：</label>';
+                    diskHtml += formatBytes(d.used) + ' / ' + formatBytes(d.total) + ' (' + d.percent.toFixed(2) + '%)';
+                    diskHtml += '<div class="progress">';
+                    diskHtml += '<div class="progress-bar" role="progressbar" style="width: ' + d.percent + '%"></div>';
+                    diskHtml += '</div>';
+                    diskHtml += '</div>';
+                });
+                $('#diskInfo').html(diskHtml);
+            }
+
+            // 系统信息
+            if (data.system) {
+                $('#osName').text(data.system.system + ' ' + data.system.release);
+                $('#osArch').text(data.system.machine);
+            }
+        }
+
+        function formatBytes(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+            if (bytes < 1024 * 1024 * 1024) return (bytes / 1024 / 1024).toFixed(2) + ' MB';
+            return (bytes / 1024 / 1024 / 1024).toFixed(2) + ' GB';
+        }
+
+        function updateProgressColor($elem, percent) {
+            $elem.removeClass('progress-bar-success progress-bar-warning progress-bar-danger');
+            if (percent < 60) {
+                $elem.addClass('progress-bar-success');
+            } else if (percent < 80) {
+                $elem.addClass('progress-bar-warning');
+            } else {
+                $elem.addClass('progress-bar-danger');
+            }
+        }
+    </script>
+</body>
+</html>

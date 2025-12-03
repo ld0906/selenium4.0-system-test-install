@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>登录 - {{ system_name }}</title>
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet"/>
+    <link href="{{ url_for('static', filename='css/font-awesome.min.css') }}" rel="stylesheet"/>
+    <link href="{{ url_for('static', filename='css/style.min.css') }}" rel="stylesheet"/>
+    <link href="{{ url_for('static', filename='css/login.min.css') }}" rel="stylesheet"/>
+    <style type="text/css">
+        label.error { position:inherit; }
+        .signin { background: #f3f3f4; }
+        .signinpanel { width: 750px; margin: 10% auto 0; }
+    </style>
+</head>
+<body class="signin">
+    <div class="signinpanel">
+        <div class="row">
+            <div class="col-sm-7">
+                <div class="signin-info">
+                    <div class="logopanel m-b">
+                        <h1>{{ system_name }}</h1>
+                    </div>
+                    <div class="m-b"></div>
+                    <h4>欢迎使用 <strong>{{ system_name }}</strong></h4>
+                    <ul class="m-b">
+                        <li><i class="fa fa-arrow-circle-o-right m-r-xs"></i> Python Flask</li>
+                        <li><i class="fa fa-arrow-circle-o-right m-r-xs"></i> SQLite3</li>
+                        <li><i class="fa fa-arrow-circle-o-right m-r-xs"></i> Bootstrap</li>
+                        <li><i class="fa fa-arrow-circle-o-right m-r-xs"></i> Jinja2</li>
+                    </ul>
+                    {% if isAllowRegister %}
+                    <strong>还没有账号？ <a href="{{ url_for('auth.register') }}">立即注册&raquo;</a></strong>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-sm-5">
+                <form id="signupForm" autocomplete="off" onsubmit="return false;">
+                    <h4 class="no-margins">登录：</h4>
+                    <p class="m-t-md">管理系统测试平台</p>
+                    <input type="text" name="username" class="form-control uname" placeholder="用户名" value="admin" />
+                    <input type="password" name="password" class="form-control pword" placeholder="密码" value="admin123" />
+                    {% if captchaEnabled %}
+                    <div class="row m-t">
+                        <div class="col-xs-6">
+                            <input type="text" name="validateCode" class="form-control code" placeholder="验证码" maxlength="5" />
+                        </div>
+                        <div class="col-xs-6">
+                            <a href="javascript:void(0);" title="点击更换验证码" onclick="refreshCode()">
+                                <img id="captchaImage" src="{{ url_for('auth.captcha_image', type=captchaType) }}" class="imgcode" width="85%"/>
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if isRemembered %}
+                    <div class="checkbox-custom {% if not captchaEnabled %}m-t{% endif %}">
+                        <input type="checkbox" id="rememberme" name="rememberme">
+                        <label for="rememberme">记住我</label>
+                    </div>
+                    {% endif %}
+                    <button class="btn btn-success btn-block" onclick="login()">登录</button>
+                </form>
+            </div>
+        </div>
+        <div class="signup-footer">
+            <div class="pull-left">
+                {{ copyright }}
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script>
+        function refreshCode() {
+            $('#captchaImage').attr('src', '{{ url_for("auth.captcha_image") }}?type={{ captchaType }}&t=' + new Date().getTime());
+        }
+
+        function login() {
+            var username = $('input[name="username"]').val();
+            var password = $('input[name="password"]').val();
+            
+            if (!username) {
+                alert('请输入用户名');
+                return false;
+            }
+            if (!password) {
+                alert('请输入密码');
+                return false;
+            }
+            
+            {% if captchaEnabled %}
+            var validateCode = $('input[name="validateCode"]').val();
+            if (!validateCode) {
+                alert('请输入验证码');
+                return false;
+            }
+            {% endif %}
+            
+            $.ajax({
+                type: 'POST',
+                url: '{{ url_for("auth.login") }}',
+                data: $('#signupForm').serialize(),
+                success: function(result) {
+                    if (result.code == 0) {
+                        location.href = '{{ url_for("main.system_index") }}';
+                    } else {
+                        alert(result.msg);
+                        {% if captchaEnabled %}
+                        refreshCode();
+                        {% endif %}
+                    }
+                },
+                error: function() {
+                    alert('登录请求失败，请稍后重试');
+                }
+            });
+            
+            return false;
+        }
+        
+        // 回车登录
+        $(document).keypress(function(e) {
+            if (e.which == 13) {
+                login();
+            }
+        });
+    </script>
+</body>
+</html>

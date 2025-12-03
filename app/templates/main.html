@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>主页</title>
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet"/>
+    <link href="{{ url_for('static', filename='css/font-awesome.min.css') }}" rel="stylesheet"/>
+    <style>
+        body {
+            padding: 20px;
+            background: #ffffff;
+        }
+        .welcome-panel {
+            text-align: center;
+            padding: 50px 20px;
+        }
+        .welcome-panel h1 {
+            color: #1ab394;
+            margin-bottom: 20px;
+        }
+        .info-box {
+            background: #f3f3f4;
+            padding: 30px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .info-box h3 {
+            color: #2f4050;
+            margin-bottom: 15px;
+        }
+        .info-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #e7eaec;
+        }
+        .info-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="welcome-panel">
+        <h1><i class="fa fa-home"></i> 欢迎使用{{ system_name }}</h1>
+        <p class="lead">这是一个基于Python Flask开发的管理系统</p>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="info-box">
+                    <h3><i class="fa fa-user"></i> 用户信息</h3>
+                    <div class="info-item">
+                        <strong>登录名：</strong> {{ user.login_name }}
+                    </div>
+                    <div class="info-item">
+                        <strong>用户名：</strong> {{ user.user_name }}
+                    </div>
+                    <div class="info-item">
+                        <strong>部门：</strong> {{ user.dept.dept_name if user.dept else '无' }}
+                    </div>
+                    <div class="info-item">
+                        <strong>邮箱：</strong> {{ user.email or '未设置' }}
+                    </div>
+                    <div class="info-item">
+                        <strong>手机：</strong> {{ user.phonenumber or '未设置' }}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="info-box">
+                    <h3><i class="fa fa-info-circle"></i> 系统信息</h3>
+                    <div class="info-item">
+                        <strong>系统名称：</strong> {{ system_name }}
+                    </div>
+                    <div class="info-item">
+                        <strong>系统版本：</strong> {{ system_version }}
+                    </div>
+                    <div class="info-item">
+                        <strong>技术栈：</strong> Python Flask + SQLite
+                    </div>
+                    <div class="info-item">
+                        <strong>上次登录IP：</strong> {{ user.login_ip or '首次登录' }}
+                    </div>
+                    <div class="info-item">
+                        <strong>上次登录时间：</strong> {{ user.login_date.strftime('%Y-%m-%d %H:%M:%S') if user.login_date else '首次登录' }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row" style="margin-top: 20px;">
+            <div class="col-md-12">
+                <div class="info-box">
+                    <h3><i class="fa fa-book"></i> 快速开始</h3>
+                    <p>本系统是一个完整的后台管理系统，包含以下功能模块：</p>
+                    <ul>
+                        <li><strong>系统管理：</strong>用户管理、角色管理、菜单管理、部门管理、岗位管理、字典管理、参数配置</li>
+                        <li><strong>系统监控：</strong>在线用户、定时任务、操作日志、登录日志、服务监控</li>
+                    </ul>
+                    <p class="text-muted" style="margin-top: 15px;">
+                        <i class="fa fa-lightbulb-o"></i> 提示：点击左侧菜单可以访问各个功能模块
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>字典管理</title>
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet"/>
+    <link href="{{ url_for('static', filename='css/font-awesome.min.css') }}" rel="stylesheet"/>
+    <style>
+        body { padding: 20px; background: white; }
+        .search-box { background: #f3f3f4; padding: 15px; margin-bottom: 15px; border-radius: 4px; }
+        .btn-toolbar { margin-bottom: 15px; }
+        table { background: white; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <h3><i class="fa fa-book"></i> 字典管理</h3>
+        
+        <!-- 搜索区域 -->
+        <div class="search-box">
+            <form id="searchForm" class="form-inline">
+                <div class="form-group">
+                    <label>字典名称：</label>
+                    <input type="text" name="dictName" class="form-control" placeholder="请输入字典名称">
+                </div>
+                <div class="form-group" style="margin-left: 10px;">
+                    <label>状态：</label>
+                    <select name="status" class="form-control">
+                        <option value="">全部</option>
+                        <option value="0">正常</option>
+                        <option value="1">停用</option>
+                    </select>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="searchData()" style="margin-left: 10px;">
+                    <i class="fa fa-search"></i> 查询
+                </button>
+                <button type="button" class="btn btn-default" onclick="resetSearch()">
+                    <i class="fa fa-refresh"></i> 重置
+                </button>
+            </form>
+        </div>
+
+        <!-- 工具栏 -->
+        <div class="btn-toolbar">
+            <button type="button" class="btn btn-success" onclick="addDict()">
+                <i class="fa fa-plus"></i> 新增
+            </button>
+        </div>
+
+        <!-- 数据表格 -->
+        <table class="table table-striped table-bordered table-hover" id="dictTable">
+            <thead>
+                <tr>
+                    <th width="10%">字典ID</th>
+                    <th width="20%">字典名称</th>
+                    <th width="20%">字典类型</th>
+                    <th width="15%">状态</th>
+                    <th width="20%">创建时间</th>
+                    <th width="15%">操作</th>
+                </tr>
+            </thead>
+            <tbody id="dictTableBody">
+                <tr><td colspan="6" class="text-center">加载中...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script>
+        $(function() { loadData(); });
+
+        function loadData() {
+            $('#dictTableBody').html('<tr><td colspan="6" class="text-center">字典管理功能开发中...</td></tr>');
+        }
+
+        function searchData() { loadData(); }
+        function resetSearch() { $('#searchForm')[0].reset(); loadData(); }
+        function addDict() { alert('新增字典功能开发中...'); }
+    </script>
+</body>
+</html>

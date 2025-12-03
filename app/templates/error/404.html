@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>404 - 页面未找到</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f3f3f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .error-container {
+            text-align: center;
+        }
+        .error-code {
+            font-size: 120px;
+            color: #f8ac59;
+            margin: 0;
+        }
+        .error-message {
+            font-size: 24px;
+            color: #676a6c;
+            margin: 20px 0;
+        }
+        .error-detail {
+            color: #999;
+            margin: 10px 0;
+        }
+        .btn-back {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #1ab394;
+            color: white;
+            text-decoration: none;
+            border-radius: 3px;
+        }
+        .btn-back:hover {
+            background: #18a689;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <h1 class="error-code">404</h1>
+        <div class="error-message">页面未找到</div>
+        <div class="error-detail">抱歉，您访问的页面不存在</div>
+        <a href="javascript:history.back();" class="btn-back">返回上一页</a>
+        <a href="/" class="btn-back">返回首页</a>
+    </div>
+</body>
+</html>

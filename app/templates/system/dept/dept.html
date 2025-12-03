@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>部门管理</title>
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet"/>
+    <link href="{{ url_for('static', filename='css/font-awesome.min.css') }}" rel="stylesheet"/>
+    <style>
+        body { padding: 20px; background: white; }
+        .search-box { background: #f3f3f4; padding: 15px; margin-bottom: 15px; border-radius: 4px; }
+        .btn-toolbar { margin-bottom: 15px; }
+        table { background: white; }
+        .tree-table { width: 100%; }
+        .tree-table td { padding: 8px; }
+        .tree-indent { display: inline-block; width: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <h3><i class="fa fa-sitemap"></i> 部门管理</h3>
+        
+        <!-- 搜索区域 -->
+        <div class="search-box">
+            <form id="searchForm" class="form-inline">
+                <div class="form-group">
+                    <label>部门名称：</label>
+                    <input type="text" name="deptName" class="form-control" placeholder="请输入部门名称">
+                </div>
+                <div class="form-group" style="margin-left: 10px;">
+                    <label>状态：</label>
+                    <select name="status" class="form-control">
+                        <option value="">全部</option>
+                        <option value="0">正常</option>
+                        <option value="1">停用</option>
+                    </select>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="searchData()" style="margin-left: 10px;">
+                    <i class="fa fa-search"></i> 查询
+                </button>
+                <button type="button" class="btn btn-default" onclick="resetSearch()">
+                    <i class="fa fa-refresh"></i> 重置
+                </button>
+            </form>
+        </div>
+
+        <!-- 工具栏 -->
+        <div class="btn-toolbar">
+            <button type="button" class="btn btn-success" onclick="addDept()">
+                <i class="fa fa-plus"></i> 新增
+            </button>
+            <button type="button" class="btn btn-info" onclick="expandAll()">
+                <i class="fa fa-expand"></i> 展开全部
+            </button>
+            <button type="button" class="btn btn-info" onclick="collapseAll()">
+                <i class="fa fa-compress"></i> 折叠全部
+            </button>
+        </div>
+
+        <!-- 数据表格 -->
+        <table class="table table-striped table-bordered table-hover tree-table" id="deptTable">
+            <thead>
+                <tr>
+                    <th width="30%">部门名称</th>
+                    <th width="10%">排序</th>
+                    <th width="15%">状态</th>
+                    <th width="20%">创建时间</th>
+                    <th width="25%">操作</th>
+                </tr>
+            </thead>
+            <tbody id="deptTableBody">
+                <tr>
+                    <td colspan="5" class="text-center">加载中...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 新增/编辑对话框 -->
+    <div class="modal fade" id="deptModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                    <h4 class="modal-title" id="modalTitle">新增部门</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="deptForm">
+                        <input type="hidden" name="deptId" id="deptId">
+                        <input type="hidden" name="parentId" id="parentId" value="0">
+                        <div class="form-group">
+                            <label>上级部门</label>
+                            <input type="text" class="form-control" id="parentName" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>部门名称 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="deptName" id="deptName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>显示排序</label>
+                            <input type="number" class="form-control" name="orderNum" id="orderNum" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label>负责人</label>
+                            <input type="text" class="form-control" name="leader" id="leader">
+                        </div>
+                        <div class="form-group">
+                            <label>联系电话</label>
+                            <input type="text" class="form-control" name="phone" id="phone">
+                        </div>
+                        <div class="form-group">
+                            <label>邮箱</label>
+                            <input type="email" class="form-control" name="email" id="email">
+                        </div>
+                        <div class="form-group">
+                            <label>状态</label>
+                            <select class="form-control" name="status" id="statusSelect">
+                                <option value="0">正常</option>
+                                <option value="1">停用</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="submitForm()">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script>
+        var deptData = [];
+
+        $(function() {
+            loadData();
+        });
+
+        function loadData() {
+            $.ajax({
+                url: '/system/dept/tree',
+                type: 'GET',
+                success: function(res) {
+                    if (res.code == 0) {
+                        deptData = res.data || [];
+                        renderTable(deptData);
+                    } else {
+                        alert('加载数据失败：' + res.msg);
+                    }
+                }
+            });
+        }
+
+        function renderTable(data) {
+            var html = '';
+            if (data.length == 0) {
+                html = '<tr><td colspan="5" class="text-center">暂无数据</td></tr>';
+            } else {
+                html = renderTreeRows(data, 0);
+            }
+            $('#deptTableBody').html(html);
+        }
+
+        function renderTreeRows(nodes, level) {
+            var html = '';
+            nodes.forEach(function(node) {
+                var statusText = node.status == '0' ? 
+                    '<span class="label label-success">正常</span>' : 
+                    '<span class="label label-danger">停用</span>';
+                
+                var indent = '';
+                for (var i = 0; i < level; i++) {
+                    indent += '<span class="tree-indent"></span>';
+                }
+                
+                html += '<tr data-id="' + node.dept_id + '" data-level="' + level + '">';
+                html += '<td>' + indent;
+                if (node.children && node.children.length > 0) {
+                    html += '<i class="fa fa-minus-square-o tree-toggle" onclick="toggleRow(this)"></i> ';
+                } else {
+                    html += '<i class="fa fa-file-o"></i> ';
+                }
+                html += node.dept_name + '</td>';
+                html += '<td>' + node.order_num + '</td>';
+                html += '<td>' + statusText + '</td>';
+                html += '<td>' + node.create_time + '</td>';
+                html += '<td>';
+                html += '<button class="btn btn-xs btn-success" onclick="addChildDept(' + node.dept_id + ')"><i class="fa fa-plus"></i> 新增</button> ';
+                html += '<button class="btn btn-xs btn-info" onclick="editDept(' + node.dept_id + ')"><i class="fa fa-edit"></i> 修改</button> ';
+                html += '<button class="btn btn-xs btn-danger" onclick="deleteDept(' + node.dept_id + ')"><i class="fa fa-trash"></i> 删除</button>';
+                html += '</td>';
+                html += '</tr>';
+                
+                if (node.children && node.children.length > 0) {
+                    html += renderTreeRows(node.children, level + 1);
+                }
+            });
+            return html;
+        }
+
+        function toggleRow(icon) {
+            var $icon = $(icon);
+            var $row = $icon.closest('tr');
+            var level = parseInt($row.attr('data-level'));
+            var $nextRows = $row.nextAll('tr');
+            
+            var isCollapse = $icon.hasClass('fa-minus-square-o');
+            
+            $nextRows.each(function() {
+                var $nextRow = $(this);
+                var nextLevel = parseInt($nextRow.attr('data-level'));
+                
+                if (nextLevel <= level) {
+                    return false;
+                }
+                
+                if (nextLevel == level + 1) {
+                    $nextRow.toggle(!isCollapse);
+                } else if (nextLevel > level + 1) {
+                    if (isCollapse) {
+                        $nextRow.hide();
+                    }
+                }
+            });
+            
+            if (isCollapse) {
+                $icon.removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
+            } else {
+                $icon.removeClass('fa-plus-square-o').addClass('fa-minus-square-o');
+            }
+        }
+
+        function expandAll() {
+            $('#deptTableBody tr').show();
+            $('.tree-toggle').removeClass('fa-plus-square-o').addClass('fa-minus-square-o');
+        }
+
+        function collapseAll() {
+            $('#deptTableBody tr').each(function() {
+                var level = parseInt($(this).attr('data-level'));
+                if (level > 0) {
+                    $(this).hide();
+                }
+            });
+            $('.tree-toggle').removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
+        }
+
+        function searchData() {
+            var deptName = $('input[name="deptName"]').val();
+            var status = $('select[name="status"]').val();
+            
+            var filtered = filterDepts(deptData, deptName, status);
+            renderTable(filtered);
+        }
+
+        function filterDepts(depts, name, status) {
+            var result = [];
+            depts.forEach(function(dept) {
+                var match = true;
+                if (name && dept.dept_name.indexOf(name) == -1) {
+                    match = false;
+                }
+                if (status && dept.status != status) {
+                    match = false;
+                }
+                
+                if (match) {
+                    result.push(dept);
+                } else if (dept.children && dept.children.length > 0) {
+                    var childResult = filterDepts(dept.children, name, status);
+                    if (childResult.length > 0) {
+                        var newDept = Object.assign({}, dept);
+                        newDept.children = childResult;
+                        result.push(newDept);
+                    }
+                }
+            });
+            return result;
+        }
+
+        function resetSearch() {
+            $('#searchForm')[0].reset();
+            renderTable(deptData);
+        }
+
+        function addDept() {
+            $('#modalTitle').text('新增部门');
+            $('#deptForm')[0].reset();
+            $('#deptId').val('');
+            $('#parentId').val('0');
+            $('#parentName').val('无');
+            $('#deptModal').modal('show');
+        }
+
+        function addChildDept(parentId) {
+            $('#modalTitle').text('新增子部门');
+            $('#deptForm')[0].reset();
+            $('#deptId').val('');
+            $('#parentId').val(parentId);
+            
+            // 查找父部门名称
+            var parentName = findDeptName(deptData, parentId);
+            $('#parentName').val(parentName);
+            $('#deptModal').modal('show');
+        }
+
+        function findDeptName(depts, deptId) {
+            for (var i = 0; i < depts.length; i++) {
+                if (depts[i].dept_id == deptId) {
+                    return depts[i].dept_name;
+                }
+                if (depts[i].children && depts[i].children.length > 0) {
+                    var name = findDeptName(depts[i].children, deptId);
+                    if (name) return name;
+                }
+            }
+            return '';
+        }
+
+        function editDept(deptId) {
+            $('#modalTitle').text('编辑部门');
+            
+            // 查找部门数据
+            var dept = findDept(deptData, deptId);
+            if (dept) {
+                $('#deptId').val(dept.dept_id);
+                $('#parentId').val(dept.parent_id);
+                $('#parentName').val(dept.parent_id == 0 ? '无' : findDeptName(deptData, dept.parent_id));
+                $('#deptName').val(dept.dept_name);
+                $('#orderNum').val(dept.order_num);
+                $('#leader').val(dept.leader || '');
+                $('#phone').val(dept.phone || '');
+                $('#email').val(dept.email || '');
+                $('#statusSelect').val(dept.status);
+                $('#deptModal').modal('show');
+            }
+        }
+
+        function findDept(depts, deptId) {
+            for (var i = 0; i < depts.length; i++) {
+                if (depts[i].dept_id == deptId) {
+                    return depts[i];
+                }
+                if (depts[i].children && depts[i].children.length > 0) {
+                    var dept = findDept(depts[i].children, deptId);
+                    if (dept) return dept;
+                }
+            }
+            return null;
+        }
+
+        function submitForm() {
+            var deptId = $('#deptId').val();
+            var url = deptId ? '/system/dept/edit' : '/system/dept/add';
+            
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: $('#deptForm').serialize(),
+                success: function(res) {
+                    if (res.code == 0) {
+                        alert(res.msg);
+                        $('#deptModal').modal('hide');
+                        loadData();
+                    } else {
+                        alert(res.msg);
+                    }
+                }
+            });
+        }
+
+        function deleteDept(deptId) {
+            if (confirm('确定要删除该部门吗？')) {
+                $.ajax({
+                    url: '/system/dept/remove/' + deptId,
+                    type: 'POST',
+                    success: function(res) {
+                        if (res.code == 0) {
+                            alert(res.msg);
+                            loadData();
+                        } else {
+                            alert(res.msg);
+                        }
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

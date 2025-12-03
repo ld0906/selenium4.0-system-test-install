@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>参数配置</title>
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet"/>
+    <link href="{{ url_for('static', filename='css/font-awesome.min.css') }}" rel="stylesheet"/>
+    <style>
+        body { padding: 20px; background: white; }
+        .search-box { background: #f3f3f4; padding: 15px; margin-bottom: 15px; border-radius: 4px; }
+        .btn-toolbar { margin-bottom: 15px; }
+        table { background: white; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <h3><i class="fa fa-cog"></i> 参数配置</h3>
+        
+        <!-- 搜索区域 -->
+        <div class="search-box">
+            <form id="searchForm" class="form-inline">
+                <div class="form-group">
+                    <label>参数名称：</label>
+                    <input type="text" name="configName" class="form-control" placeholder="请输入参数名称">
+                </div>
+                <button type="button" class="btn btn-primary" onclick="searchData()" style="margin-left: 10px;">
+                    <i class="fa fa-search"></i> 查询
+                </button>
+                <button type="button" class="btn btn-default" onclick="resetSearch()">
+                    <i class="fa fa-refresh"></i> 重置
+                </button>
+            </form>
+        </div>
+
+        <!-- 工具栏 -->
+        <div class="btn-toolbar">
+            <button type="button" class="btn btn-success" onclick="addConfig()">
+                <i class="fa fa-plus"></i> 新增
+            </button>
+        </div>
+
+        <!-- 数据表格 -->
+        <table class="table table-striped table-bordered table-hover" id="configTable">
+            <thead>
+                <tr>
+                    <th width="10%">参数ID</th>
+                    <th width="20%">参数名称</th>
+                    <th width="20%">参数键名</th>
+                    <th width="20%">参数键值</th>
+                    <th width="15%">系统内置</th>
+                    <th width="15%">操作</th>
+                </tr>
+            </thead>
+            <tbody id="configTableBody">
+                <tr><td colspan="6" class="text-center">加载中...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script>
+        $(function() { loadData(); });
+
+        function loadData() {
+            $('#configTableBody').html('<tr><td colspan="6" class="text-center">参数配置功能开发中...</td></tr>');
+        }
+
+        function searchData() { loadData(); }
+        function resetSearch() { $('#searchForm')[0].reset(); loadData(); }
+        function addConfig() { alert('新增参数功能开发中...'); }
+    </script>
+</body>
+</html>

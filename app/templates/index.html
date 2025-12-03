@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ system_name }}</title>
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet"/>
+    <link href="{{ url_for('static', filename='css/font-awesome.min.css') }}" rel="stylesheet"/>
+    <link href="{{ url_for('static', filename='css/animate.min.css') }}" rel="stylesheet"/>
+    <link href="{{ url_for('static', filename='css/style.min.css') }}" rel="stylesheet"/>
+    <style>
+        body { background: #f3f3f4; overflow: hidden; }
+        .navbar-default { background-color: #2f4050; border: none; }
+        .navbar-static-side { background: #2f4050; }
+        .nav > li > a { color: #a7b1c2; padding: 14px 20px; }
+        .nav > li.active > a { background: #293846; color: #ffffff; }
+        .logo { padding: 20px; text-align: center; color: white; font-size: 20px; }
+        .user-panel { padding: 10px; text-align: center; }
+        iframe { width: 100%; height: calc(100vh - 50px); border: none; }
+        .main-content { margin-left: 220px; padding: 0; }
+        .sidebar { width: 220px; position: fixed; left: 0; top: 0; bottom: 0; background: #2f4050; overflow-y: auto; z-index: 1000; }
+        .navbar-header { background: #1ab394; height: 50px; line-height: 50px; }
+        .sidebar-collapse { padding-top: 0; }
+    </style>
+</head>
+<body class="fixed-sidebar">
+    <div id="wrapper">
+        <!-- 左侧导航 -->
+        <nav class="navbar-default navbar-static-side sidebar" role="navigation">
+            <div class="navbar-header">
+                <div class="logo">{{ system_name }}</div>
+            </div>
+            <div class="sidebar-collapse">
+                <ul class="nav" id="side-menu">
+                    <li>
+                        <div class="user-panel">
+                            <div class="info" style="color: white;">
+                                <p style="margin: 10px 0;">{{ user.user_name }}</p>
+                                <p style="margin: 5px 0;">
+                                    <i class="fa fa-circle text-success"></i> 在线
+                                    <a href="{{ url_for('auth.logout') }}" style="margin-left:10px;color:#ed5565;">
+                                        <i class="fa fa-sign-out"></i> 注销
+                                    </a>
+                                </p>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('main.main_content') }}" target="mainFrame">
+                            <i class="fa fa-home"></i> <span class="nav-label">首页</span>
+                        </a>
+                    </li>
+                    {% for menu in menus %}
+                    <li>
+                        {% if menu.url and menu.url != '#' %}
+                        <a href="{{ menu.url }}" target="mainFrame">
+                            <i class="{{ menu.icon }}"></i>
+                            <span class="nav-label">{{ menu.menu_name }}</span>
+                        </a>
+                        {% else %}
+                        <a href="#">
+                            <i class="{{ menu.icon }}"></i>
+                            <span class="nav-label">{{ menu.menu_name }}</span>
+                            <span class="fa arrow"></span>
+                        </a>
+                        <ul class="nav nav-second-level">
+                            {% for child in menu.children %}
+                            <li>
+                                <a href="{{ child.url }}" target="mainFrame">{{ child.menu_name }}</a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </nav>
+
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <iframe name="mainFrame" src="{{ url_for('main.main_content') }}"></iframe>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script>
+        $(document).ready(function() {
+            // 菜单展开/收起
+            $('#side-menu').on('click', 'a', function(e) {
+                var $this = $(this);
+                var $parent = $this.parent('li');
+                var $submenu = $this.next('ul');
+                
+                if ($submenu.length > 0) {
+                    e.preventDefault();
+                    if ($submenu.is(':visible')) {
+                        $submenu.slideUp();
+                        $parent.removeClass('active');
+                    } else {
+                        $('#side-menu .nav-second-level').slideUp();
+                        $('#side-menu li').removeClass('active');
+                        $submenu.slideDown();
+                        $parent.addClass('active');
+                    }
+                } else {
+                    $('#side-menu li').removeClass('active');
+                    $parent.addClass('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
